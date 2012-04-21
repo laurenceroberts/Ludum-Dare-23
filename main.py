@@ -24,6 +24,7 @@ pygame.display.set_caption( project_title )
 
 # Start game
 Game.addSpriteGroup( "world" )
+Game.addSpriteGroup( "player-weapon" )
 Game.addSpriteGroup( "player" )
 
 world = World( )
@@ -61,6 +62,12 @@ while inLoop:
 			
 		elif event.type == pygame.MOUSEBUTTONUP:
 			player.mouseUpListener( event.button )
+			
+		elif event.type == pygame.MOUSEMOTION:
+			#if player.paintgun.visible:
+			player.paintgun.mouseMotionListener( event )
+			#elif player.hoover.visible:
+			player.hoover.mouseMotionListener( event )
 	
 	player.physics( )
 	

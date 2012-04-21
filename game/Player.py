@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 from Game import Game
 from AnimatedSprite import AnimatedSprite
 from Sprite import Sprite
@@ -12,13 +12,14 @@ class Player( AnimatedSprite ):
 	control_PAINT = 1
 	control_HOOVER = 3
 	
+	paintgun = None
+	hoover = None
+	
 	speed_X = 5
 	speed_Y = 8
 	accel_X = 0.4
 	move_X = 0
 	move_Y = 0
-	
-	feet = None
 	
 	collisions = {'Platform': []}
 	
@@ -30,6 +31,13 @@ class Player( AnimatedSprite ):
 		
 		self.setAnimState( "move" )
 		
+		# Add weapons
+		self.paintgun = PaintGun( [0,0] )
+		self.hoover = Hoover( [0,0] )
+		self.hoover.hide( )
+		
+		self.active_weapon = 'paintgun'
+		
 		# Add player feet collider
 		#self.feet = PlayerFeet( self )
 		#Game.addSprite( "player", self.feet )
@@ -39,7 +47,9 @@ class Player( AnimatedSprite ):
 		self.pos[0] += self.move_X
 		self.pos[1] += self.move_Y
 		
-		#self.feet.update( )
+		# Update attached weapons
+		self.paintgun.updatePos( self.pos )
+		self.hoover.updatePos( self.pos )
 		
 		# Animation
 		self.updateAnim( ticks )
@@ -77,11 +87,17 @@ class Player( AnimatedSprite ):
 	
 	def mouseDownListener( self, button ):
 		if button == self.control_PAINT:
-			print 'paint'
+			self.active_weapon = 'paintgun'
+			self.paintgun.show( )
+			self.hoover.hide( )
+			self.paintgun.fire( )
 		elif button == self.control_HOOVER:
-			print 'hoover'
+			self.active_weapon = 'hover'
+			self.paintgun.hide( )
+			self.hoover.show( )
+			self.hoover.fire( )
 	
-	def mouseUpListener( self, button):
+	def mouseUpListener( self, button ):
 		pass
 	
 	def collisionsListener( self, collisions ):
@@ -115,30 +131,58 @@ class Player( AnimatedSprite ):
 					if self.move_Y < 0:
 						pass
 						#self.move_Y = 0
-				
-'''
-class PlayerFeet( Sprite ):
-	player = None
+
+
+class PlayerWeapon( Sprite ):
+	def __init__( self, pos, src ):
+		super( PlayerWeapon, self ).__init__( pos, src )
+		Game.addSprite( "player-weapon", self )
 	
-	def __init__( self, player ):
-		#self.rect = pygame.Rect( 0, 0, 10, 4 )
-		super( PlayerFeet, self ).__init__( [0,0], "sprites/player/player-feet.png" )
+	def show( self ):
+		self.visible = True
+	
+	def hide( self ):
+		self.visible = False
+	
+	def mouseMotionListener( self, event ):
+		dx = float( event.pos[0] - self.pos[0] )
+		dy = float( event.pos[1] - self.pos[1] )
 		
-		self.player = player
+		if dy == 0: dy = 0.01
+		angle = math.degrees( math.atan2(dy, dx) )
+		
+		self.image = pygame.transform.rotate( self.origin_image, 360 - angle )
+
+class PaintGun( PlayerWeapon ):
+	is_firing = False
+	fire_rate = 200
+	fire_last = 0
+	
+	def __init__( self, pos ):
+		super( PaintGun, self ).__init__( pos, "sprites/player/paint-gun.png" )
+	
+	def updatePos( self, player_pos ):
+		self.pos[0] = player_pos[0] + 2
+		self.pos[1] = player_pos[1] + 26
+	
+	def fire( self ):
+		self.is_firing = True
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
-		super( PlayerFeet, self ).draw( screen, frame_ticks, ticks, fps )
-		return ["check-collisions", "world"]
-	
-	def update( self ):
-		self.pos[0] = self.player.pos[0] + 4
-		self.pos[1] = self.player.pos[1] + 45
+		if ticks - self.fire_last >= self.fire_rate:
+			self.fire_last = ticks
+			
+			print 'fire'
 		
-	def collisionsListener( self, collisions ):
-		self.player.collisions = {'Platform': []}
-		length = len( collisions )
-		print collisions
-		if length > 0:
-			for i in range( 0, length ):
-				self.player.collisions[collisions[i].__class__.__name__].append( collisions[i] )
-'''
+		return super( PaintGun, self ).draw( screen, frame_ticks, ticks, fps )
+
+class Hoover( PlayerWeapon ):
+	def __init__( self, pos ):
+		super( Hoover, self ).__init__( pos, "sprites/player/hoover.png" )
+	
+	def updatePos( self, player_pos ):
+		self.pos[0] = player_pos[0] + 2
+		self.pos[1] = player_pos[1] + 26
+	
+	def fire( self ):
+		pass

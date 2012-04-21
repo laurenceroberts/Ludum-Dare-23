@@ -19,9 +19,6 @@ class AnimatedSprite( pygame.sprite.Sprite ):
 		self._last_update = 0
 		self._frame = 0
 		self.state = ''
-		
-	def spriteRect( self ):
-		return self.image.get_rect( )
 	
 	def addAnimState( self, name, start, end, fps ):
 		self.frames += (end - start + 1)
@@ -35,7 +32,7 @@ class AnimatedSprite( pygame.sprite.Sprite ):
 					self.images.append( self.src_image.subsurface(i * self.frame_width, 0, self.frame_width, self.src_height) )
 				
 				self.image = self.images[0]
-				self.rect = self.spriteRect( )
+				self.rect = self.image.get_rect( )
 				
 				#self.rect.inflate_ip( self.inflate_amount, self.inflate_amount )
 				
