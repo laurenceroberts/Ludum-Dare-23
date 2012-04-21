@@ -37,6 +37,9 @@ class Player( AnimatedSprite ):
 		self.hoover.hide( )
 		
 		self.active_weapon = 'paintgun'
+		
+		self.target = PlayerWeaponTarget( [0,0] )
+		self.target.weapon = self.active_weapon
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		# Move
@@ -104,10 +107,12 @@ class Player( AnimatedSprite ):
 			self.hoover.hide( )
 			self.paintgun.is_firing = True
 		elif event.button == self.control_HOOVER:
-			self.active_weapon = 'hover'
+			self.active_weapon = 'hoover'
 			self.paintgun.hide( )
 			self.hoover.show( )
 			self.hoover.is_firing = True
+		
+		self.target.weapon = self.active_weapon
 	
 	def mouseUpListener( self, event ):
 		if event.button == self.control_PAINT:
@@ -187,6 +192,26 @@ class PlayerWeapon( Sprite ):
 		angle = math.degrees( math.atan2(dy, dx) )
 		
 		self.image = pygame.transform.rotate( self.origin_image, 360 - angle )
+
+class PlayerWeaponTarget( Sprite ):
+	weapon = None
+	
+	def __init__( self, pos ):
+		super( PlayerWeaponTarget, self ).__init__( pos, "sprites/player/mouse.png", 10 )
+		Game.addSprite( "player-weapon", self )
+		
+	def draw( self, screen, frame_ticks, ticks, fps ):
+		self.pos[0], self.pos[1] = pygame.mouse.get_pos( )
+		super( PlayerWeaponTarget, self ).draw( screen, frame_ticks, ticks, fps )
+		if self.weapon == "hoover":
+			return [ "check-collisions", "tiny-worlds" ]
+	
+	def collisionsListener( self, collisions ):
+		length = len(collisions)
+		if length:
+			for i in range(0, length):
+				collisions[i].pos[0] = self.pos[0]
+				collisions[i].pos[1] = self.pos[1]
 
 class PaintGun( PlayerWeapon ):
 	is_firing = False
@@ -278,9 +303,45 @@ class PaintSplat( AnimatedSprite ):
 		return None
 
 class Hoover( PlayerWeapon ):
+	is_firing = False
+	suction = None
+	
 	def __init__( self, pos ):
 		super( Hoover, self ).__init__( pos, "sprites/player/hoover.png" )
+		self.suction = HooverSuction( [pos[0], pos[1]] )
+		self.suction.visible = False
 	
 	def updatePos( self, player_pos ):
 		self.pos[0] = player_pos[0] + 2
 		self.pos[1] = player_pos[1] + 26
+		
+		self.suction.pos[0] = self.pos[0] + 32
+		self.suction.pos[1] = self.pos[1] - 10
+	
+	def draw( self, screen, frame_ticks, ticks, fps ):
+		if self.is_firing:
+			self.suction.visible = True
+		else:
+			self.suction.visible = False
+		
+		return super( Hoover, self ).draw( screen, frame_ticks, ticks, fps )
+	
+class HooverSuction( AnimatedSprite ):
+	def __init__( self, pos ):
+		super( HooverSuction, self ).__init__( pos, "sprites/player/hoover-suction.png", 8 )
+		Game.addSprite( "player-weapon", self )
+		
+		self.addAnimState( "suck", 0, 3, 12 )
+		self.setAnimState( "suck" )
+	
+	def updatePos( self, player_pos ):
+		self.pos[0] = player_pos[0] + 2
+		self.pos[1] = player_pos[1] + 26
+
+	def draw( self, screen, frame_ticks, ticks, fps ):
+		if self.visible:
+			# Animate
+			self.updateAnim( ticks )
+			
+			# Draw
+			screen.blit( self.image, self.rect )

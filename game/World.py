@@ -12,17 +12,17 @@ class World:
 	def __init__( self ):
 		
 		self.bg = ParallaxBackground(
-			"sprites/worlds/water/background-fore.png",
-			"sprites/worlds/water/background-middle.png",
-			"sprites/worlds/water/background-far.png",
-			"sprites/worlds/water/background-back.png"
+			"sprites/worlds/planet/background-fore.png",
+			"sprites/worlds/planet/background-middle.png",
+			"sprites/worlds/planet/background-far.png",
+			"sprites/worlds/planet/background-back.png"
 		)
 		
 		self.platforms.append( Platform( [600, 200], 4 ) )
 		for i in range(0, 4):
 			self.platforms.append( Platform( [random.randint(100, 800), random.randint(300, 600)], 4 ) )
 		
-		for i in range(0, 4):
+		for i in range(0, 1):
 			TinyWorld( [random.randint(100, 800), random.randint(300, 600)] )
 	
 	def update( self, player ):
@@ -40,7 +40,7 @@ class Platform( Sprite ):
 	pos = []
 	
 	def __init__( self, pos, size ):
-		super( Platform, self ).__init__( pos, "sprites/worlds/water/platform-"+str(size)+".png", 5 )
+		super( Platform, self ).__init__( pos, "sprites/worlds/planet/platform-1.png", 5 )
 		Game.addSprite( "world", self )
 		
 		# Physics
@@ -51,7 +51,7 @@ class Platform( Sprite ):
 # Tiny World
 class TinyWorld( AnimatedSprite ):
 	def __init__( self, pos ):
-		super( TinyWorld, self ).__init__( pos, "sprites/worlds/water/tiny-1.png", 9 )
+		super( TinyWorld, self ).__init__( pos, "sprites/worlds/planet/tiny-1.png", 9 )
 		Game.addSprite( "tiny-worlds", self )
 		
 		self.addAnimState( "panic", 0, 3, 12 )

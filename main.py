@@ -39,6 +39,8 @@ player = Player( )
 
 Game.addSprite( "player", player )
 
+pygame.mouse.set_visible( False )
+
 # Define core colours
 black = ( 0, 0, 0 )
 white = ( 255, 255, 255 )
