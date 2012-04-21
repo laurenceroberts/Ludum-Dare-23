@@ -6,7 +6,34 @@ This is my entry to Ludum Dare 23 [http://www.ludumdare.com]
 
 The theme is 'Tiny World'
 
+h3. Concepts
+
+h4. Tiny World
+
+You play as a collector of tiny worlds, several tiny worlds exist within your
+world, and your world is a tiny world existing within another world. In a
+sort of Gulliver's Travels esque way.
+
+You hover up the worlds and their inhabitants
+
+h4. Paint your own platforms
+
+The main gameplay concept is that your character must paint the platforms they
+run on. The paint gradually 'drips' and the platform is lost.
+
+The player also slowly slides down the platform forcing them to keep moving.
+
+h4. Enemies
+
+* 'Turpentine' blob - erases paint player has shot
+
 h3. Resources
+
+h4. Software
+
+* e Text Editor [http://www.e-texteditor.com/]
+* Photoshop [http://www.adobe.com/products/photoshop.html]
+* Pickle [http://www.pickleeditor.com/]
 
 h4. Music
 
