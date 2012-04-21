@@ -2,14 +2,16 @@ import pygame
 
 class AnimatedSprite( pygame.sprite.Sprite ):
 	visible = True
+	zindex = 1
 	
-	def __init__( self, pos, src ):
+	def __init__( self, pos, src, zindex = 1 ):
 		super( AnimatedSprite, self ).__init__( )
 		
 		self.images = []
 		self.frames = 0
 		self.states = {}
 		self.pos = pos
+		self.zindex = zindex
 		
 		self.src_image = pygame.image.load( src ).convert_alpha( )
 		self.src_width, self.src_height = self.src_image.get_size( )

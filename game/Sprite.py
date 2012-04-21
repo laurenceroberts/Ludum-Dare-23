@@ -2,11 +2,13 @@ import pygame
 
 class Sprite( pygame.sprite.Sprite ):
 	visible = True
+	zindex = 1
 	
-	def __init__( self, pos, src ):
+	def __init__( self, pos, src, zindex = 1 ):
 		super( Sprite, self ).__init__( )
 		
 		self.pos = pos
+		self.zindex = zindex
 		
 		self.image = pygame.image.load( src ).convert_alpha( )
 		self.origin_image = self.image

@@ -23,6 +23,12 @@ screen = pygame.display.set_mode( size )
 pygame.display.set_caption( project_title )
 
 # Start game
+Game.screen_width = screen_width
+Game.screen_height = screen_height
+
+Game.screen_move_x = Game.screen_width / 2.2
+
+Game.addSpriteGroup( "background" )
 Game.addSpriteGroup( "world" )
 Game.addSpriteGroup( "player" )
 Game.addSpriteGroup( "player-weapon" )
@@ -69,12 +75,14 @@ while inLoop:
 			#elif player.hoover.visible:
 			player.hoover.mouseMotionListener( event )
 	
+	# Player physics
 	player.physics( )
 	
 	# Reset the screen
 	screen.fill( white )
 	
 	# Render the game
+	world.update( player )
 	Game.render( screen, int(clock.get_time()), int(pygame.time.get_ticks()) )
 	
 	# Set clock rate to fps

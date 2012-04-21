@@ -24,7 +24,7 @@ class Player( AnimatedSprite ):
 	collisions = {'Platform': [], 'PaintSplat': []}
 	
 	def __init__( self ):
-		super( Player, self ).__init__( [100,100], "sprites/player/player-green.png" )
+		super( Player, self ).__init__( [Game.screen_width / 2,100], "sprites/player/player-green.png", 9 )
 		
 		self.addAnimState( "idle",	0, 0, 1 )
 		self.addAnimState( "move",	1, 4, 6 )
@@ -40,7 +40,19 @@ class Player( AnimatedSprite ):
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		# Move
-		self.pos[0] += self.move_X
+		if self.move_X < 0:
+			if self.pos[0] > Game.screen_move_x:
+				self.pos[0] += self.move_X
+			else:
+				for i in range(0, len(self.paintgun.splats)):
+					self.paintgun.splats[i].pos[0] -= self.move_X
+		elif self.move_X > 0:
+			if self.pos[0] < Game.screen_width - Game.screen_move_x:
+				self.pos[0] += self.move_X
+			else:
+				for i in range(0, len(self.paintgun.splats)):
+					self.paintgun.splats[i].pos[0] -= self.move_X
+		
 		self.pos[1] += self.move_Y
 		
 		# Update attached weapons
@@ -158,7 +170,7 @@ class Player( AnimatedSprite ):
 
 class PlayerWeapon( Sprite ):
 	def __init__( self, pos, src ):
-		super( PlayerWeapon, self ).__init__( pos, src )
+		super( PlayerWeapon, self ).__init__( pos, src, 10 )
 		Game.addSprite( "player-weapon", self )
 	
 	def show( self ):
@@ -180,6 +192,7 @@ class PaintGun( PlayerWeapon ):
 	is_firing = False
 	fire_rate = 100
 	fire_last = 0
+	splats = []
 	
 	def __init__( self, pos ):
 		super( PaintGun, self ).__init__( pos, "sprites/player/paint-gun.png" )
@@ -192,7 +205,7 @@ class PaintGun( PlayerWeapon ):
 		if self.is_firing:
 			if ticks - self.fire_last >= self.fire_rate:
 				self.fire_last = ticks
-				PaintSplat( [self.pos[0], self.pos[1]], pygame.mouse.get_pos() )
+				self.splats.append( PaintSplat( [self.pos[0], self.pos[1]], pygame.mouse.get_pos() ) )
 		
 		return super( PaintGun, self ).draw( screen, frame_ticks, ticks, fps )
 	
@@ -209,7 +222,7 @@ class PaintSplat( AnimatedSprite ):
 		pos[0] -= 0
 		pos[1] -= 16
 		
-		super( PaintSplat, self ).__init__( pos, "sprites/player/paint-splat.png" )
+		super( PaintSplat, self ).__init__( pos, "sprites/player/paint-splat.png", 8 )
 		Game.addSprite( "world", self )
 		
 		self.addAnimState( "move", 0, 0, 1 )
@@ -221,13 +234,11 @@ class PaintSplat( AnimatedSprite ):
 		self.target = [target[0] - 24, target[1] - 24]
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
-		# Apply gravity
-		#if self.move_Y < Game.gravity:
-		#	self.move_Y += ( Game.gravity_a / 4 )
-		#	if self.move_Y > Game.gravity:
-		#		self.move_Y = Game.gravity
 		
 		if self.target:
+			# Apply gravity
+			self.target[1] += 5
+			
 			dx = float( self.target[0] - self.pos[0] )
 			dy = float( self.target[1] - self.pos[1] )
 			if dy == 0: dy = 0.01
