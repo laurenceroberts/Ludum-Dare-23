@@ -16,20 +16,20 @@ class Player( AnimatedSprite ):
 	hoover = None
 	
 	speed_X = 5
-	speed_Y = 8
+	speed_Y = 12
 	accel_X = 0.4
 	move_X = 0
 	move_Y = 0
 	
-	collisions = {'Platform': []}
+	collisions = {'Platform': [], 'PaintSplat': []}
 	
 	def __init__( self ):
 		super( Player, self ).__init__( [100,100], "sprites/player/player-green.png" )
 		
-		#self.addAnimState( "idle",	1, 1, 1 )
-		self.addAnimState( "move",	0, 3, 6 )
+		self.addAnimState( "idle",	0, 0, 1 )
+		self.addAnimState( "move",	1, 4, 6 )
 		
-		self.setAnimState( "move" )
+		self.setAnimState( "idle" )
 		
 		# Add weapons
 		self.paintgun = PaintGun( [0,0] )
@@ -37,10 +37,6 @@ class Player( AnimatedSprite ):
 		self.hoover.hide( )
 		
 		self.active_weapon = 'paintgun'
-		
-		# Add player feet collider
-		#self.feet = PlayerFeet( self )
-		#Game.addSprite( "player", self.feet )
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		# Move
@@ -52,6 +48,10 @@ class Player( AnimatedSprite ):
 		self.hoover.updatePos( self.pos )
 		
 		# Animation
+		if self.move_X != 0 or self.move_Y != 0:
+			self.setAnimState( "move" )
+		else:
+			self.setAnimState( "idle" )
 		self.updateAnim( ticks )
 		
 		# Draw
@@ -85,23 +85,26 @@ class Player( AnimatedSprite ):
 		elif key == self.control_DOWN:
 			self.move_Y = 0
 	
-	def mouseDownListener( self, button ):
-		if button == self.control_PAINT:
+	def mouseDownListener( self, event ):
+		if event.button == self.control_PAINT:
 			self.active_weapon = 'paintgun'
 			self.paintgun.show( )
 			self.hoover.hide( )
-			self.paintgun.fire( )
-		elif button == self.control_HOOVER:
+			self.paintgun.is_firing = True
+		elif event.button == self.control_HOOVER:
 			self.active_weapon = 'hover'
 			self.paintgun.hide( )
 			self.hoover.show( )
-			self.hoover.fire( )
+			self.hoover.is_firing = True
 	
-	def mouseUpListener( self, button ):
-		pass
+	def mouseUpListener( self, event ):
+		if event.button == self.control_PAINT:
+			self.paintgun.is_firing = False
+		elif event.button == self.control_HOOVER:
+			self.hoover.is_firing = False
 	
 	def collisionsListener( self, collisions ):
-		self.collisions = {'Platform': []}
+		self.collisions = {'Platform': [], 'PaintSplat': []}
 		length = len( collisions )
 		if length > 0:
 			for i in range( 0, length ):
@@ -131,7 +134,27 @@ class Player( AnimatedSprite ):
 					if self.move_Y < 0:
 						pass
 						#self.move_Y = 0
-
+		# Check splats
+		slength = len(self.collisions['PaintSplat'])
+		if slength > 0:
+			for i in range(0, slength):
+				splat = self.collisions['PaintSplat'][i]
+				
+				if splat.state != "move":
+					if splat.rect.y > self.rect.y: # splat underneath
+						#if splat.rect.y < self.rect.y + self.rect.height: # player clipping splat
+						#	self.pos[1] = splat.rect.y - self.rect.height + 1
+						
+						if splat.state == "splat-idle":
+							if self.move_Y > 0:
+								self.move_Y = 0
+						else:
+							if self.move_Y > 1:
+								self.move_Y = 1
+					else: # splat above
+						if self.move_Y < 0:
+							pass
+							#self.move_Y = 0
 
 class PlayerWeapon( Sprite ):
 	def __init__( self, pos, src ):
@@ -155,7 +178,7 @@ class PlayerWeapon( Sprite ):
 
 class PaintGun( PlayerWeapon ):
 	is_firing = False
-	fire_rate = 200
+	fire_rate = 100
 	fire_last = 0
 	
 	def __init__( self, pos ):
@@ -165,16 +188,83 @@ class PaintGun( PlayerWeapon ):
 		self.pos[0] = player_pos[0] + 2
 		self.pos[1] = player_pos[1] + 26
 	
-	def fire( self ):
-		self.is_firing = True
-	
 	def draw( self, screen, frame_ticks, ticks, fps ):
-		if ticks - self.fire_last >= self.fire_rate:
-			self.fire_last = ticks
-			
-			print 'fire'
+		if self.is_firing:
+			if ticks - self.fire_last >= self.fire_rate:
+				self.fire_last = ticks
+				PaintSplat( [self.pos[0], self.pos[1]], pygame.mouse.get_pos() )
 		
 		return super( PaintGun, self ).draw( screen, frame_ticks, ticks, fps )
+	
+class PaintSplat( AnimatedSprite ):
+	speed = 20
+	move_X = 0
+	move_Y = 0
+	
+	target = None
+	
+	age = 0
+	
+	def __init__( self, pos, target ):
+		pos[0] -= 0
+		pos[1] -= 16
+		
+		super( PaintSplat, self ).__init__( pos, "sprites/player/paint-splat.png" )
+		Game.addSprite( "world", self )
+		
+		self.addAnimState( "move", 0, 0, 1 )
+		self.addAnimState( "splat-idle", 1, 1, 1 )
+		self.addAnimState( "splat-drip", 2, 10, 4 )
+		
+		self.setAnimState( "move" )
+		
+		self.target = [target[0] - 24, target[1] - 24]
+	
+	def draw( self, screen, frame_ticks, ticks, fps ):
+		# Apply gravity
+		#if self.move_Y < Game.gravity:
+		#	self.move_Y += ( Game.gravity_a / 4 )
+		#	if self.move_Y > Game.gravity:
+		#		self.move_Y = Game.gravity
+		
+		if self.target:
+			dx = float( self.target[0] - self.pos[0] )
+			dy = float( self.target[1] - self.pos[1] )
+			if dy == 0: dy = 0.01
+			a = 360 - math.atan2(dy, dx)
+			
+			self.move_X = (self.speed * math.sin(a))
+			self.move_Y = (self.speed * math.cos(a))
+			
+			# Move
+			self.pos[0] += self.move_X
+			self.pos[1] += self.move_Y
+			
+			near_x = abs(self.pos[0] - self.target[0])
+			near_y = abs(self.pos[1] - self.target[1])
+			check = 10
+			if near_x > -check and near_x < check and near_y > -check and near_y < check:
+				self.target = None
+				self.setAnimState( "splat-idle" )
+				self.age = 1
+			
+			self.updateAnim( ticks )
+		
+		if self.age > 0:
+			self.age += 1
+			
+			if self.state == "splat-drip" and self._frame == 10:
+				self.kill( )
+			else:
+				self.updateAnim( ticks )
+			
+			if self.age == 100:
+				self.setAnimState( "splat-drip" )
+		
+		# Draw
+		screen.blit( self.image, self.rect )
+		
+		return None
 
 class Hoover( PlayerWeapon ):
 	def __init__( self, pos ):
@@ -183,6 +273,3 @@ class Hoover( PlayerWeapon ):
 	def updatePos( self, player_pos ):
 		self.pos[0] = player_pos[0] + 2
 		self.pos[1] = player_pos[1] + 26
-	
-	def fire( self ):
-		pass

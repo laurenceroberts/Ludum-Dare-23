@@ -5,7 +5,7 @@
 
 # Defines
 project_title = "Un-named Project"
-screen_size = screen_width, screen_height = 1024, 600
+screen_size = screen_width, screen_height = 1280, 768
 
 # Initialise pygame
 import pygame
@@ -24,8 +24,8 @@ pygame.display.set_caption( project_title )
 
 # Start game
 Game.addSpriteGroup( "world" )
-Game.addSpriteGroup( "player-weapon" )
 Game.addSpriteGroup( "player" )
+Game.addSpriteGroup( "player-weapon" )
 
 world = World( )
 player = Player( )
@@ -58,10 +58,10 @@ while inLoop:
 			player.keyUpListener( event.key )
 			
 		elif event.type == pygame.MOUSEBUTTONDOWN:
-			player.mouseDownListener( event.button )
+			player.mouseDownListener( event )
 			
 		elif event.type == pygame.MOUSEBUTTONUP:
-			player.mouseUpListener( event.button )
+			player.mouseUpListener( event )
 			
 		elif event.type == pygame.MOUSEMOTION:
 			#if player.paintgun.visible:
