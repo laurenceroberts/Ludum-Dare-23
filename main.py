@@ -5,7 +5,7 @@
 
 # Defines
 project_title = "Un-named Project"
-screen_size = screen_width, screen_height = 800, 600
+screen_size = screen_width, screen_height = 1024, 600
 
 # Initialise pygame
 import pygame
@@ -14,15 +14,22 @@ pygame.init()
 # Import game files
 from game.Game import Game
 from game.AnimatedSprite import AnimatedSprite
+from game.TinyWorld import *
 from game.Player import Player
-
-game = Game( )
-player = Player( )
 
 # Setup screen
 size = [ screen_width, screen_height ]
 screen = pygame.display.set_mode( size )
 pygame.display.set_caption( project_title )
+
+# Start game
+Game.addSpriteGroup( "world" )
+Game.addSpriteGroup( "player" )
+
+world = World( )
+player = Player( )
+
+Game.addSprite( "player", player )
 
 # Define core colours
 black = ( 0, 0, 0 )
@@ -58,10 +65,13 @@ while inLoop:
 	player.physics( )
 	
 	# Reset the screen
-	screen.fill( black )
+	screen.fill( white )
+	
+	# Render the game
+	Game.render( screen, int(clock.get_time()), int(pygame.time.get_ticks()) )
 	
 	# Set clock rate to fps
-	clock.tick( game.fps )
+	clock.tick( Game.fps )
 	
 	# Update the screen with drawn components
 	pygame.display.flip( )

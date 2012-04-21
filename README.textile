@@ -12,7 +12,7 @@ You play as a collector of tiny worlds, several tiny worlds exist within your
 world, and your world is a tiny world existing within another world. In a
 sort of Gulliver's Travels esque way.
 
-You hover up the worlds and their inhabitants
+You hoover up the worlds and their inhabitants
 
 h3. Paint your own platforms
 
