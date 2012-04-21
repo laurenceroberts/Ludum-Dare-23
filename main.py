@@ -14,7 +14,7 @@ pygame.init()
 # Import game files
 from game.Game import Game
 from game.AnimatedSprite import AnimatedSprite
-from game.TinyWorld import *
+from game.World import *
 from game.Player import Player
 
 # Setup screen
@@ -30,6 +30,7 @@ Game.screen_move_x = Game.screen_width / 2.2
 
 Game.addSpriteGroup( "background" )
 Game.addSpriteGroup( "world" )
+Game.addSpriteGroup( "tiny-worlds" )
 Game.addSpriteGroup( "player" )
 Game.addSpriteGroup( "player-weapon" )
 

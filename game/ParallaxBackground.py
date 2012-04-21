@@ -51,11 +51,8 @@ class BackgroundLayer:
 					self.move_X += move_X
 				else:
 					self.move_X = move_X
-				print self.move_X
+				
 				if self.move_X <= -1 or self.move_X >= 1:
 					for i in range(0, len(self.tiles)):
 						self.tiles[i].pos[0] -= int( self.move_X )
 					self.move_X = 0
-			#elif player.pos[0] > Game.screen_width - self.screen_move_x:
-				#for i in range(0, len(self.tiles)):
-				#	self.tiles[i].pos[0] += ( float(player.move_X) * self.scroll_adjust )

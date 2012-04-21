@@ -1,9 +1,10 @@
 import pygame, random
 from Game import Game
 from Sprite import Sprite
+from AnimatedSprite import AnimatedSprite
 from ParallaxBackground import ParallaxBackground
 
-# Tiny World
+# World
 class World:
 	bg = None
 	platforms = []
@@ -20,6 +21,9 @@ class World:
 		self.platforms.append( Platform( [600, 200], 4 ) )
 		for i in range(0, 4):
 			self.platforms.append( Platform( [random.randint(100, 800), random.randint(300, 600)], 4 ) )
+		
+		for i in range(0, 4):
+			TinyWorld( [random.randint(100, 800), random.randint(300, 600)] )
 	
 	def update( self, player ):
 		self.bg.update( player )
@@ -44,3 +48,22 @@ class Platform( Sprite ):
 		#self.physicsReactTarget = [ "player", "enemy" ]
 		#self.physicsReactForce = [ 0, 0, 0, 0 ] # stop all movement
 		
+# Tiny World
+class TinyWorld( AnimatedSprite ):
+	def __init__( self, pos ):
+		super( TinyWorld, self ).__init__( pos, "sprites/worlds/water/tiny-1.png", 9 )
+		Game.addSprite( "tiny-worlds", self )
+		
+		self.addAnimState( "panic", 0, 3, 12 )
+		
+		self.setAnimState( "panic" )
+	
+	def draw( self, screen, frame_ticks, ticks, fps ):
+		# Move
+		
+		
+		# Animation
+		self.updateAnim( ticks )
+		
+		# Draw
+		screen.blit( self.image, self.rect )
