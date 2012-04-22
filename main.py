@@ -210,6 +210,7 @@ while inLoop:
 				dead_text.printText( "You died" )
 				restart_text.printText( "Spacebar to restart level" )
 				Game.score = Game.score_level
+				Game.score_required_inc = 1
 				pressed = pygame.key.get_pressed()
 				if pressed[pygame.K_SPACE]:
 					world.resetLevel( )
