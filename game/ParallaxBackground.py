@@ -33,7 +33,7 @@ class BackgroundLayer:
 		
 		count_x = int( math.ceil( float(Game.screen_width) / float(self.tile.rect.width) ) )
 		if repeat_y:
-			count_y = int( math.ceil( Game.screen_height / self.tile.rect.height ) )
+			count_y = int( math.ceil( float(Game.screen_height) / float(self.tile.rect.height) ) )
 		else:
 			count_y = 1
 		
@@ -60,6 +60,11 @@ class BackgroundLayer:
 				
 				far_left = Game.screen_width + 1
 				far_right = -1
+				
+				for i in range(0, len(self.tiles)):
+					if self.tiles[i].pos[0] <  -self.tiles[i].rect.width:
+						self.tiles[i].kill( )
+						self.tiles[i].remove
 					
 				if self.move_X <= -1 or self.move_X >= 1:
 					for i in range(0, len(self.tiles)):

@@ -42,6 +42,11 @@ class Game:
 	def render( screen, frame_ticks, ticks ):
 		#print len(Game.sprites["enemies"])
 		
+		'''total_len = 0
+		for sg in Game.sprites:
+			total_len += len(Game.sprites[sg])
+		print total_len'''
+		
 		Game.frame += 1
 		if Game.frame > Game.fps:
 			Game.frame = 1

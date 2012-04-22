@@ -3,9 +3,17 @@
 # @theme Tiny World
 # @author Gelatin Design, Laurence Roberts
 
+# Load preferences
+prefs_file = open( "prefs.txt", 'r' )
+prefs_s = prefs_file.read().split("\n");
+prefs = { }
+for p in prefs_s:
+	pref = p.split(" ")
+	prefs[pref[0]] = pref[1]
+
 # Defines
-project_title = "Un-named Project"
-screen_size = screen_width, screen_height = 1280, 768
+project_title = "I Painted a Tiny World"
+screen_size = screen_width, screen_height = int(prefs["screen_width"]), int(prefs["screen_height"])
 
 # Initialise pygame
 import pygame, pygame._view
@@ -22,6 +30,9 @@ from game.BitmapFont import *
 size = [ screen_width, screen_height ]
 screen = pygame.display.set_mode( size )
 pygame.display.set_caption( project_title )
+pygame.display.set_icon( pygame.image.load( "icon.png" ).convert_alpha( ) )
+
+screen.convert( )
 
 # Load fonts
 font_1 = BitmapFont( "fonts/accent_36.png", ["ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ", 8, 5] )
@@ -161,6 +172,7 @@ while inLoop:
 		if pressed[0] or pressed[2]:
 			Game.mode = "game"
 			player.visible = True
+			player.paintgun.visible = True
 	else:		
 		
 		# Player physics
@@ -178,13 +190,13 @@ while inLoop:
 		if player.dead:
 			if Game.lives < 0:
 				gameover_text.printText( "You collected " + str(Game.score) + " tiny worlds")
-				restart_text.printText( "Click to play again" )
+				restart_text.printText( "Spacebar to play again" )
 				Game.level = 1
 				Game.real_level = 1
 				Game.score_required = 1
 				Game.score_level = 0
-				pressed = pygame.mouse.get_pressed()
-				if pressed[0] or pressed[2]:
+				pressed = pygame.key.get_pressed()
+				if pressed[pygame.K_SPACE]:
 					Game.score = 0
 					Game.lives = 3
 					world.clearLevel( )
@@ -196,10 +208,10 @@ while inLoop:
 				
 			else:
 				dead_text.printText( "You died" )
-				restart_text.printText( "Click to restart level" )
+				restart_text.printText( "Spacebar to restart level" )
 				Game.score = Game.score_level
-				pressed = pygame.mouse.get_pressed()
-				if pressed[0] or pressed[2]:
+				pressed = pygame.key.get_pressed()
+				if pressed[pygame.K_SPACE]:
 					world.resetLevel( )
 					player.reset( )
 		else:
@@ -223,6 +235,8 @@ while inLoop:
 	
 	# Set clock rate to fps
 	clock.tick( Game.fps )
+	
+	#print clock.get_fps( )
 	
 	# Update the screen with drawn components
 	pygame.display.flip( )

@@ -4,6 +4,16 @@ This is my entry to Ludum Dare 23 [http://www.ludumdare.com]
 
 The theme is 'Tiny World'
 
+h2. Controls
+
+WASD - Movement
+Left Click - Fire paint platforms
+Right Click - Hoover up planets
+
+h2. Screen Resolution
+
+Edit "prefs.txt" to set your window resolution
+
 h2. Concepts
 
 h3. Tiny World
