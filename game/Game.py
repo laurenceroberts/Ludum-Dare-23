@@ -11,9 +11,13 @@ class Game:
 	
 	score = 0
 	score_required = 1
+	score_required_inc = 1
+	score_level = 0
 	level = 1
 	real_level = 1
-	max_level = 2
+	max_level = 3
+	
+	lives = 3
 	
 	def __init__( self ):
 		pass

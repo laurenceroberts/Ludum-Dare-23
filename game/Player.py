@@ -3,6 +3,11 @@ from Game import Game
 from AnimatedSprite import AnimatedSprite
 from Sprite import Sprite
 
+# Load sounds
+pygame.mixer.init( )
+sound_death = pygame.mixer.Sound( "sounds/scream.wav" )
+sound_damage = pygame.mixer.Sound( "sounds/damage.wav" )
+
 # Player
 class Player( AnimatedSprite ):
 	control_LEFT = pygame.K_a
@@ -68,8 +73,11 @@ class Player( AnimatedSprite ):
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		# Kill player if falls down
-		if self.death_wait == 0 and self.pos[1] > Game.screen_height + self.rect.height:
+		if self.dead == False and self.death_wait == 0 and self.pos[1] > Game.screen_height + self.rect.height:
 			self.dead = True
+			sound_death.play( )
+			Game.lives -= 1
+			
 		
 		if self.visible and self.dead == False:
 			# Move
@@ -219,6 +227,9 @@ class Player( AnimatedSprite ):
 					
 					self.move_X -= 1
 					self.move_Y -= 1
+					
+					sound_damage.stop( )
+					sound_damage.play( )
 			
 			btlength = len(self.collisions['BulletTurp'])
 			if btlength > 0:
@@ -227,6 +238,9 @@ class Player( AnimatedSprite ):
 					
 					self.move_X -= 2
 					self.move_Y -= 2
+					
+					sound_damage.stop( )
+					sound_damage.play( )
 			
 			move_max = 20
 			if self.move_X > move_max:
@@ -366,7 +380,7 @@ class PaintSplat( AnimatedSprite ):
 				self.target = None
 				self.setAnimState( "splat-idle" )
 				if self.pos[1] < 100: #instant drip if near top of screen
-					self.age = 199
+					self.age = 99
 				else:
 					self.age = 1
 			
@@ -380,13 +394,14 @@ class PaintSplat( AnimatedSprite ):
 			else:
 				self.updateAnim( ticks )
 			
-			if self.age == 200:
+			if self.age == 100:
 				self.setAnimState( "splat-drip" )
 		
 		
 		if Game.outsideScreen( self.pos, self.rect ):
 			if self.state == "move":
-				self.visible = False
+				#self.visible = False
+				pass
 			else:
 				self.kill( )	
 		
@@ -409,8 +424,8 @@ class Hoover( PlayerWeapon ):
 		self.pos[0] = player_pos[0] + 2
 		self.pos[1] = player_pos[1] + 26
 		
-		self.suction.pos[0] = self.pos[0] + 32
-		self.suction.pos[1] = self.pos[1] - 10
+		self.suction.pos[0] = player_pos[0] - 12
+		self.suction.pos[1] = player_pos[1] - 12
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		if self.is_firing:
@@ -422,15 +437,11 @@ class Hoover( PlayerWeapon ):
 	
 class HooverSuction( AnimatedSprite ):
 	def __init__( self, pos ):
-		super( HooverSuction, self ).__init__( pos, "sprites/player/hoover-suction.png", 8 )
+		super( HooverSuction, self ).__init__( pos, "sprites/player/hoover-suction-2.png", 8 )
 		Game.addSprite( "player-weapon", self )
 		
-		self.addAnimState( "suck", 0, 3, 12 )
+		self.addAnimState( "suck", 0, 1, 12 )
 		self.setAnimState( "suck" )
-	
-	def updatePos( self, player_pos ):
-		self.pos[0] = player_pos[0] + 2
-		self.pos[1] = player_pos[1] + 26
 
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		if self.visible:

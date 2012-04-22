@@ -55,7 +55,8 @@ class FloatyTurp( Enemy ):
 		if length > 0:
 			for i in range(0, length):
 				if collisions[i].state == "splat-idle":
-					collisions[i].setAnimState( "splat-drip" )
+					collisions[i].kill( ) 
+					#collisions[i].setAnimState( "splat-drip" )
 
 class BulletTurp( Enemy ):
 	speed_X = 10
