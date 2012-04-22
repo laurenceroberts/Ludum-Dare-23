@@ -43,9 +43,13 @@ class Game:
 								#if r[1] == 'player':
 								#collisions = pygame.sprite.spritecollide( s, self.sprites[r[1]], False, pygame.sprite.collide_circle_ratio(0.3) )
 								#else:
-								for zi in range(1, 10):
+								if isinstance(r[1], basestring) == True:
 									collisions = pygame.sprite.spritecollide( s, Game.sprites[r[1]], False )
 									s.collisionsListener( collisions )
+								else:
+									for cg in r[1]:
+										collisions = pygame.sprite.spritecollide( s, Game.sprites[cg], False )
+										s.collisionsListener( collisions )
 		
 		#if self.terrain.redraw == True:
 			#self.terrain.generate( self.terrain.tilesize['x'], 1, 'prepend' )

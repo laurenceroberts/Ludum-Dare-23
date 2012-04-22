@@ -27,12 +27,17 @@ class BackgroundLayer:
 		self.tiles = []
 		
 		self.scroll_adjust = float(scroll_adjust)
+		self.src = src
+		self.zindex = zindex
 		
 		count_x = int( math.ceil( float(Game.screen_width) / float(self.tile.rect.width) ) )
 		if repeat_y:
 			count_y = int( math.ceil( Game.screen_height / self.tile.rect.height ) )
 		else:
 			count_y = 1
+		
+		self.count_x = count_x
+		self.count_y = count_y
 		
 		for x in range(0, count_x):
 			for y in range(0, count_y):
@@ -52,7 +57,25 @@ class BackgroundLayer:
 				else:
 					self.move_X = move_X
 				
+				far_left = Game.screen_width + 1
+				far_right = -1
+					
 				if self.move_X <= -1 or self.move_X >= 1:
 					for i in range(0, len(self.tiles)):
 						self.tiles[i].pos[0] -= int( self.move_X )
+						
+						if self.tiles[i].pos[0] < far_left:
+							far_left = self.tiles[i].pos[0]
+						if self.tiles[i].pos[0] > far_right:
+							far_right = self.tiles[i].pos[0]
+						
 					self.move_X = 0
+					
+					if far_left > 0:
+						for y in range(0, self.count_y):
+							self.tiles.append( Sprite( [far_left - self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.src, self.zindex ) )
+							Game.addSprite( "background", self.tiles[len(self.tiles)-1] )
+					if far_right < Game.screen_width - self.tile.rect.width:
+						for y in range(0, self.count_y):
+							self.tiles.append( Sprite( [far_right + self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.src, self.zindex ) )
+							Game.addSprite( "background", self.tiles[len(self.tiles)-1] )

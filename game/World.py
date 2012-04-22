@@ -3,6 +3,7 @@ from Game import Game
 from Sprite import Sprite
 from AnimatedSprite import AnimatedSprite
 from ParallaxBackground import ParallaxBackground
+from Enemy import FloatyTurp, BulletTurp
 
 # World
 class World:
@@ -26,7 +27,10 @@ class World:
 			TinyWorld( [random.randint(100, 800), random.randint(300, 600)] )
 	
 	def update( self, player ):
+		# update background
 		self.bg.update( player )
+		
+		# move platforms
 		for i in range(0, len(self.platforms)):
 			if player.move_X < 0:
 				if player.pos[0] < Game.screen_move_x:
@@ -34,6 +38,14 @@ class World:
 			elif player.move_X > 0:
 				if player.pos[0] > Game.screen_width - Game.screen_move_x:
 					self.platforms[i].pos[0] -= player.move_X
+		
+		# randomly add baddies
+		randomiser = random.randint( 0, 1000 )
+		if randomiser <= 10:
+			FloatyTurp( [Game.screen_width, random.randint(100, Game.screen_height - 100)] )
+		
+		if randomiser > 10 and randomiser <= 15:
+			BulletTurp( [Game.screen_width, random.randint(100, Game.screen_height - 100)] )
 
 # Platform
 class Platform( Sprite ):

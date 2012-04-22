@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, random
 from Game import Game
 from AnimatedSprite import AnimatedSprite
 from Sprite import Sprite
@@ -72,7 +72,7 @@ class Player( AnimatedSprite ):
 		# Draw
 		screen.blit( self.image, self.rect )
 		
-		return ["check-collisions", "world"]
+		return ["check-collisions", ["world", "player-paint"]]
 	
 	def keyDownListener( self, key ):
 		if key == self.control_LEFT:
@@ -121,12 +121,11 @@ class Player( AnimatedSprite ):
 			self.hoover.is_firing = False
 	
 	def collisionsListener( self, collisions ):
-		self.collisions = {'Platform': [], 'PaintSplat': []}
 		length = len( collisions )
 		if length > 0:
 			for i in range( 0, length ):
 				self.collisions[collisions[i].__class__.__name__].append( collisions[i] )
-	
+		
 	def physics( self ):
 		# Apply gravity
 		if self.move_Y < Game.gravity:
@@ -159,8 +158,10 @@ class Player( AnimatedSprite ):
 				
 				if splat.state != "move":
 					if splat.rect.y > self.rect.y: # splat underneath
-						#if splat.rect.y < self.rect.y + self.rect.height: # player clipping splat
-						#	self.pos[1] = splat.rect.y - self.rect.height + 1
+						if splat.state == "splat-idle":
+							if splat.rect.y < self.rect.y + self.rect.height + 6: # player clipping splat
+								self.pos[1] = splat.rect.y - self.rect.height + 6
+								#self.pos[1] -= 1
 						
 						if splat.state == "splat-idle":
 							if self.move_Y > 0:
@@ -172,6 +173,8 @@ class Player( AnimatedSprite ):
 						if self.move_Y < 0:
 							pass
 							#self.move_Y = 0
+		
+		self.collisions = {'Platform': [], 'PaintSplat': []}
 
 class PlayerWeapon( Sprite ):
 	def __init__( self, pos, src ):
@@ -247,8 +250,8 @@ class PaintSplat( AnimatedSprite ):
 		pos[0] -= 0
 		pos[1] -= 16
 		
-		super( PaintSplat, self ).__init__( pos, "sprites/player/paint-splat.png", 8 )
-		Game.addSprite( "world", self )
+		super( PaintSplat, self ).__init__( pos, "sprites/player/paint-splat-"+str(random.randint(1,6))+".png", 8 )
+		Game.addSprite( "player-paint", self )
 		
 		self.addAnimState( "move", 0, 0, 1 )
 		self.addAnimState( "splat-idle", 1, 1, 1 )
@@ -294,7 +297,7 @@ class PaintSplat( AnimatedSprite ):
 			else:
 				self.updateAnim( ticks )
 			
-			if self.age == 100:
+			if self.age == 200:
 				self.setAnimState( "splat-drip" )
 		
 		# Draw

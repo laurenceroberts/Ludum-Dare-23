@@ -31,8 +31,10 @@ Game.screen_move_x = Game.screen_width / 2.2
 Game.addSpriteGroup( "background" )
 Game.addSpriteGroup( "world" )
 Game.addSpriteGroup( "tiny-worlds" )
+Game.addSpriteGroup( "enemies" )
 Game.addSpriteGroup( "player" )
 Game.addSpriteGroup( "player-weapon" )
+Game.addSpriteGroup( "player-paint" )
 
 world = World( )
 player = Player( )
