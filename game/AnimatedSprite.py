@@ -3,6 +3,7 @@ import pygame
 class AnimatedSprite( pygame.sprite.Sprite ):
 	visible = True
 	zindex = 1
+	image_angle = False
 	
 	def __init__( self, pos, src, zindex = 1 ):
 		super( AnimatedSprite, self ).__init__( )
@@ -60,4 +61,7 @@ class AnimatedSprite( pygame.sprite.Sprite ):
 			
 			self.image = self.images[self._frame]
 			self._last_update = ticks
+			
+			if self.image_angle != False:
+				self.image = pygame.transform.rotate( self.image, self.image_angle )
 			

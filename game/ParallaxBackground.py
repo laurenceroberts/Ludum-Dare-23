@@ -7,6 +7,7 @@ class ParallaxBackground:
 	layers = []
 	
 	def __init__( self, fore, middle, far, back ):
+		self.layers = []
 		self.layers.append( BackgroundLayer( back, 1, True, 0.25 ) )
 		self.layers.append( BackgroundLayer( far, 2, False, 0.5 ) )
 		self.layers.append( BackgroundLayer( middle, 3, False, 1.5 ) )
@@ -27,7 +28,7 @@ class BackgroundLayer:
 		self.tiles = []
 		
 		self.scroll_adjust = float(scroll_adjust)
-		self.src = src
+		self.bgsrc = src
 		self.zindex = zindex
 		
 		count_x = int( math.ceil( float(Game.screen_width) / float(self.tile.rect.width) ) )
@@ -73,9 +74,10 @@ class BackgroundLayer:
 					
 					if far_left > 0:
 						for y in range(0, self.count_y):
-							self.tiles.append( Sprite( [far_left - self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.src, self.zindex ) )
+							self.tiles.append( Sprite( [far_left - self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.bgsrc, self.zindex ) )
 							Game.addSprite( "background", self.tiles[len(self.tiles)-1] )
 					if far_right < Game.screen_width - self.tile.rect.width:
 						for y in range(0, self.count_y):
-							self.tiles.append( Sprite( [far_right + self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.src, self.zindex ) )
+							#print self.bgsrc
+							self.tiles.append( Sprite( [far_right + self.tile.rect.width, Game.screen_height - (y+1)*self.tile.rect.height], self.bgsrc, self.zindex ) )
 							Game.addSprite( "background", self.tiles[len(self.tiles)-1] )

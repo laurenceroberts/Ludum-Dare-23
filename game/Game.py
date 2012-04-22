@@ -9,6 +9,12 @@ class Game:
 	gravity = 14
 	gravity_a = 0.4
 	
+	score = 0
+	score_required = 1
+	level = 1
+	real_level = 1
+	max_level = 2
+	
 	def __init__( self ):
 		pass
 	
@@ -20,9 +26,18 @@ class Game:
 	@staticmethod
 	def addSprite( group, sprite ):
 		Game.sprites[ group ].add( sprite )
+		
+	@staticmethod
+	def outsideScreen( pos, rect ):
+		if pos[0] < -rect.width or pos[0] > Game.screen_width or pos[1] < -rect.height or pos[1] > Game.screen_height:
+			return True
+		else:
+			return False
 	
 	@staticmethod	
 	def render( screen, frame_ticks, ticks ):
+		#print len(Game.sprites["enemies"])
+		
 		Game.frame += 1
 		if Game.frame > Game.fps:
 			Game.frame = 1

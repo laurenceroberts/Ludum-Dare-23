@@ -8,7 +8,7 @@ project_title = "Un-named Project"
 screen_size = screen_width, screen_height = 1280, 768
 
 # Initialise pygame
-import pygame
+import pygame, pygame._view
 pygame.init()
 
 # Import game files
@@ -16,11 +16,16 @@ from game.Game import Game
 from game.AnimatedSprite import AnimatedSprite
 from game.World import *
 from game.Player import Player
+from game.BitmapFont import *
 
 # Setup screen
 size = [ screen_width, screen_height ]
 screen = pygame.display.set_mode( size )
 pygame.display.set_caption( project_title )
+
+# Load fonts
+font_1 = BitmapFont( "fonts/accent_36.png", ["ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ", 8, 5] )
+font_2 = BitmapFont( "fonts/accent_36_red.png", ["ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ", 8, 5] )
 
 # Start game
 Game.screen_width = screen_width
@@ -36,10 +41,22 @@ Game.addSpriteGroup( "player" )
 Game.addSpriteGroup( "player-weapon" )
 Game.addSpriteGroup( "player-paint" )
 
+score_text = BitmapText( font_1, [20, 20] )
+score_text.setSurface( screen )
+
+level_text = BitmapText( font_1, [Game.screen_width - 200, 20] )
+level_text.setSurface( screen )
+
+dead_text = BitmapText( font_2, [(Game.screen_width / 2)-50, 100] )
+dead_text.setSurface( screen )
+
+restart_text = BitmapText( font_2, [(Game.screen_width / 2)-200, 200] )
+restart_text.setSurface( screen )
+
+Game.level = 1
+
 world = World( )
 player = Player( )
-
-Game.addSprite( "player", player )
 
 pygame.mouse.set_visible( False )
 
@@ -89,6 +106,36 @@ while inLoop:
 	# Render the game
 	world.update( player )
 	Game.render( screen, int(clock.get_time()), int(pygame.time.get_ticks()) )
+	
+	# Print text
+	score_text.printText( "Collected " + str(Game.score) + " of " + str(Game.score_required) )
+	level_text.printText( "Level " + str(Game.real_level) )
+	if player.dead:
+		dead_text.printText( "You died" )
+		restart_text.printText( "Click to restart level" )
+		
+		Game.score = 0
+		
+		pressed = pygame.mouse.get_pressed()
+		if pressed[0] or pressed[2]:
+			world.resetLevel( )
+			player.reset( )
+	else:
+		if Game.score >= Game.score_required:
+			Game.score = 0
+			#Game.score_required += 1
+			Game.level += 1
+			Game.real_level += 1
+			
+			if Game.level > Game.max_level:
+				Game.level = 1
+			
+			world.clearLevel( )
+			world.clearBg( )
+			world = None
+			world = World( )
+			player.clear( )
+			player = Player( )
 	
 	# Set clock rate to fps
 	clock.tick( Game.fps )

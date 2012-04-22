@@ -21,10 +21,16 @@ class Player( AnimatedSprite ):
 	move_X = 0
 	move_Y = 0
 	
-	collisions = {'Platform': [], 'PaintSplat': []}
+	death_wait = 0
+	dead = False
+	
+	score = 0
+	
+	collisions = {'Platform': [], 'PaintSplat': [], 'FloatyTurp': [], 'BulletTurp': []}
 	
 	def __init__( self ):
-		super( Player, self ).__init__( [Game.screen_width / 2,100], "sprites/player/player-green.png", 9 )
+		super( Player, self ).__init__( [Game.screen_width/2,50], "sprites/player/player-"+str(Game.level)+".png", 9 )
+		Game.addSprite( "player", self )
 		
 		self.addAnimState( "idle",	0, 0, 1 )
 		self.addAnimState( "move",	1, 4, 6 )
@@ -34,45 +40,74 @@ class Player( AnimatedSprite ):
 		# Add weapons
 		self.paintgun = PaintGun( [0,0] )
 		self.hoover = Hoover( [0,0] )
-		self.hoover.hide( )
+		self.hoover.visible = False
 		
 		self.active_weapon = 'paintgun'
 		
 		self.target = PlayerWeaponTarget( [0,0] )
 		self.target.weapon = self.active_weapon
+		
+	def clear( self ):
+		self.kill( )
+		self.paintgun.kill( )
+		self.hoover.kill( )
+		self.target.kill( )
+		for i in range(0, len(self.paintgun.splats)):
+			self.paintgun.splats[i].kill( )
+		self.hoover.suction.kill( )
+
+	def reset( self ):
+		self.dead = False
+		self.pos[0] = Game.screen_width/2
+		self.pos[1] = 50
+		self.move_X = 0
+		self.move_Y = 0
+		self.visible = True
+		for i in range(0, len(self.paintgun.splats)):
+			self.paintgun.splats[i].kill( )
 	
 	def draw( self, screen, frame_ticks, ticks, fps ):
-		# Move
-		if self.move_X < 0:
-			if self.pos[0] > Game.screen_move_x:
-				self.pos[0] += self.move_X
+		# Kill player if falls down
+		if self.death_wait == 0 and self.pos[1] > Game.screen_height + self.rect.height:
+			self.dead = True
+		
+		if self.visible and self.dead == False:
+			# Move
+			if self.move_X < 0:
+				if self.pos[0] > Game.screen_move_x:
+					self.pos[0] += self.move_X
+				else:
+					for i in range(0, len(self.paintgun.splats)):
+						self.paintgun.splats[i].pos[0] -= self.move_X
+			elif self.move_X > 0:
+				if self.pos[0] < Game.screen_width - Game.screen_move_x:
+					self.pos[0] += self.move_X
+				else:
+					for i in range(0, len(self.paintgun.splats)):
+						self.paintgun.splats[i].pos[0] -= self.move_X
+			
+			self.pos[1] += self.move_Y
+			
+			self.target.player_pos[0] = self.pos[0]
+			self.target.player_pos[1] = self.pos[1]
+			
+			# Update attached weapons
+			self.paintgun.updatePos( self.pos )
+			self.hoover.updatePos( self.pos )
+			
+			# Animation
+			if self.move_X != 0 or self.move_Y != 0:
+				self.setAnimState( "move" )
 			else:
-				for i in range(0, len(self.paintgun.splats)):
-					self.paintgun.splats[i].pos[0] -= self.move_X
-		elif self.move_X > 0:
-			if self.pos[0] < Game.screen_width - Game.screen_move_x:
-				self.pos[0] += self.move_X
-			else:
-				for i in range(0, len(self.paintgun.splats)):
-					self.paintgun.splats[i].pos[0] -= self.move_X
-		
-		self.pos[1] += self.move_Y
-		
-		# Update attached weapons
-		self.paintgun.updatePos( self.pos )
-		self.hoover.updatePos( self.pos )
-		
-		# Animation
-		if self.move_X != 0 or self.move_Y != 0:
-			self.setAnimState( "move" )
+				self.setAnimState( "idle" )
+			self.updateAnim( ticks )
+			
+			# Draw
+			screen.blit( self.image, self.rect )
+			
+			return ["check-collisions", ["world", "player-paint", "enemies"]]
 		else:
-			self.setAnimState( "idle" )
-		self.updateAnim( ticks )
-		
-		# Draw
-		screen.blit( self.image, self.rect )
-		
-		return ["check-collisions", ["world", "player-paint"]]
+			pass
 	
 	def keyDownListener( self, key ):
 		if key == self.control_LEFT:
@@ -103,22 +138,23 @@ class Player( AnimatedSprite ):
 	def mouseDownListener( self, event ):
 		if event.button == self.control_PAINT:
 			self.active_weapon = 'paintgun'
-			self.paintgun.show( )
-			self.hoover.hide( )
+			self.paintgun.visible = True
+			self.hoover.visible = False
 			self.paintgun.is_firing = True
+			self.target.is_firing = True
 		elif event.button == self.control_HOOVER:
 			self.active_weapon = 'hoover'
-			self.paintgun.hide( )
-			self.hoover.show( )
+			self.paintgun.visible = False
+			self.hoover.visible = True
 			self.hoover.is_firing = True
+			self.target.is_firing = True
 		
 		self.target.weapon = self.active_weapon
 	
 	def mouseUpListener( self, event ):
-		if event.button == self.control_PAINT:
-			self.paintgun.is_firing = False
-		elif event.button == self.control_HOOVER:
-			self.hoover.is_firing = False
+		self.paintgun.is_firing = False
+		self.hoover.is_firing = False
+		self.target.is_firing = False
 	
 	def collisionsListener( self, collisions ):
 		length = len( collisions )
@@ -127,65 +163,88 @@ class Player( AnimatedSprite ):
 				self.collisions[collisions[i].__class__.__name__].append( collisions[i] )
 		
 	def physics( self ):
-		# Apply gravity
-		if self.move_Y < Game.gravity:
-			self.move_Y += Game.gravity_a
-			if self.move_Y > Game.gravity:
-				self.move_Y = Game.gravity
-		
-		# Check platforms
-		plength = len(self.collisions['Platform'])
-		if plength > 0:
-			for i in range(0, plength):
-				platform = self.collisions['Platform'][i]
-				
-				if platform.rect.y > self.rect.y: # platform underneath
-					if platform.rect.y < self.rect.y + self.rect.height: # player clipping platform
-						self.pos[1] = platform.rect.y - self.rect.height + 1
-						#self.move_Y = self.move_Y * 0.5
+		if self.dead == False:
+			# Apply gravity
+			if self.move_Y < Game.gravity:
+				self.move_Y += Game.gravity_a
+				if self.move_Y > Game.gravity:
+					self.move_Y = Game.gravity
+			
+			# Check platforms
+			plength = len(self.collisions['Platform'])
+			if plength > 0:
+				for i in range(0, plength):
+					platform = self.collisions['Platform'][i]
 					
-					if self.move_Y > 0:
-						self.move_Y = 0
-				else: # platform above
-					if self.move_Y < 0:
-						pass
-						#self.move_Y = 0
-		# Check splats
-		slength = len(self.collisions['PaintSplat'])
-		if slength > 0:
-			for i in range(0, slength):
-				splat = self.collisions['PaintSplat'][i]
-				
-				if splat.state != "move":
-					if splat.rect.y > self.rect.y: # splat underneath
-						if splat.state == "splat-idle":
-							if splat.rect.y < self.rect.y + self.rect.height + 6: # player clipping splat
-								self.pos[1] = splat.rect.y - self.rect.height + 6
-								#self.pos[1] -= 1
+					if platform.rect.y > self.rect.y: # platform underneath
+						if platform.rect.y < self.rect.y + self.rect.height: # player clipping platform
+							self.pos[1] = platform.rect.y - self.rect.height + 1
+							#self.move_Y = self.move_Y * 0.5
 						
-						if splat.state == "splat-idle":
-							if self.move_Y > 0:
-								self.move_Y = 0
-						else:
-							if self.move_Y > 1:
-								self.move_Y = 1
-					else: # splat above
+						if self.move_Y > 0:
+							self.move_Y = 0
+					else: # platform above
 						if self.move_Y < 0:
 							pass
 							#self.move_Y = 0
-		
-		self.collisions = {'Platform': [], 'PaintSplat': []}
+			# Check splats
+			slength = len(self.collisions['PaintSplat'])
+			if slength > 0:
+				for i in range(0, slength):
+					splat = self.collisions['PaintSplat'][i]
+					
+					if splat.state != "move":
+						if splat.rect.y > self.rect.y: # splat underneath
+							if splat.state == "splat-idle":
+								if splat.rect.y < self.rect.y + self.rect.height + 6: # player clipping splat
+									self.pos[1] = splat.rect.y - self.rect.height + 6
+									#self.pos[1] -= 1
+							
+							if splat.state == "splat-idle":
+								if self.move_Y > 0:
+									self.move_Y = 0
+							else:
+								if self.move_Y > 1:
+									self.move_Y = 1
+						else: # splat above
+							if self.move_Y < 0:
+								pass
+								#self.move_Y = 0
+			
+			# Check enemies
+			ftlength = len(self.collisions['FloatyTurp'])
+			if ftlength > 0:
+				for i in range(0, ftlength):
+					turp = self.collisions['FloatyTurp'][i]
+					
+					self.move_X -= 1
+					self.move_Y -= 1
+			
+			btlength = len(self.collisions['BulletTurp'])
+			if btlength > 0:
+				for i in range(0, btlength):
+					turp = self.collisions['BulletTurp'][i]
+					
+					self.move_X -= 2
+					self.move_Y -= 2
+			
+			move_max = 20
+			if self.move_X > move_max:
+				self.move_X = move_max
+			elif self.move_X < -move_max:
+				self.move_X = -move_max
+			
+			if self.move_Y > move_max:
+				self.move_Y = move_max
+			elif self.move_Y < -move_max:
+				self.move_Y = -move_max
+								
+			self.collisions = {'Platform': [], 'PaintSplat': [], 'FloatyTurp': [], 'BulletTurp': []}
 
 class PlayerWeapon( Sprite ):
 	def __init__( self, pos, src ):
 		super( PlayerWeapon, self ).__init__( pos, src, 10 )
 		Game.addSprite( "player-weapon", self )
-	
-	def show( self ):
-		self.visible = True
-	
-	def hide( self ):
-		self.visible = False
 	
 	def mouseMotionListener( self, event ):
 		dx = float( event.pos[0] - self.pos[0] )
@@ -198,6 +257,8 @@ class PlayerWeapon( Sprite ):
 
 class PlayerWeaponTarget( Sprite ):
 	weapon = None
+	player_pos = [0,0]
+	is_firing = False
 	
 	def __init__( self, pos ):
 		super( PlayerWeaponTarget, self ).__init__( pos, "sprites/player/mouse.png", 10 )
@@ -206,15 +267,34 @@ class PlayerWeaponTarget( Sprite ):
 	def draw( self, screen, frame_ticks, ticks, fps ):
 		self.pos[0], self.pos[1] = pygame.mouse.get_pos( )
 		super( PlayerWeaponTarget, self ).draw( screen, frame_ticks, ticks, fps )
-		if self.weapon == "hoover":
+		if self.weapon == "hoover" and self.is_firing:
 			return [ "check-collisions", "tiny-worlds" ]
 	
 	def collisionsListener( self, collisions ):
 		length = len(collisions)
 		if length:
 			for i in range(0, length):
-				collisions[i].pos[0] = self.pos[0]
-				collisions[i].pos[1] = self.pos[1]
+				dx = float( self.player_pos[0] - collisions[i].pos[0] )
+				dy = float( self.player_pos[1] - collisions[i].pos[1] )
+				
+				if abs(dx) < 200 and abs(dy) < 200:
+					
+					if dy == 0: dy = 0.01
+					a = 360 - math.atan2(dy, dx)
+					
+					speed = 2
+					
+					collisions[i].move_X = (speed * math.sin(a))
+					collisions[i].move_Y = (speed * math.cos(a))
+	
+					collisions[i].image_angle += 5
+					
+					diffx = abs(collisions[i].pos[0] - self.player_pos[0])
+					diffy = abs(collisions[i].pos[1] - self.player_pos[1])
+					check = 20
+					if diffx > -check and diffx < check and diffy > -check and diffy < check:
+						collisions[i].kill( )
+						Game.score += 1
 
 class PaintGun( PlayerWeapon ):
 	is_firing = False
@@ -265,7 +345,7 @@ class PaintSplat( AnimatedSprite ):
 		
 		if self.target:
 			# Apply gravity
-			self.target[1] += 5
+			#self.target[1] += 5
 			
 			dx = float( self.target[0] - self.pos[0] )
 			dy = float( self.target[1] - self.pos[1] )
@@ -285,7 +365,10 @@ class PaintSplat( AnimatedSprite ):
 			if near_x > -check and near_x < check and near_y > -check and near_y < check:
 				self.target = None
 				self.setAnimState( "splat-idle" )
-				self.age = 1
+				if self.pos[1] < 100: #instant drip if near top of screen
+					self.age = 199
+				else:
+					self.age = 1
 			
 			self.updateAnim( ticks )
 		
@@ -300,8 +383,16 @@ class PaintSplat( AnimatedSprite ):
 			if self.age == 200:
 				self.setAnimState( "splat-drip" )
 		
-		# Draw
-		screen.blit( self.image, self.rect )
+		
+		if Game.outsideScreen( self.pos, self.rect ):
+			if self.state == "move":
+				self.visible = False
+			else:
+				self.kill( )	
+		
+		if self.visible:	
+			# Draw
+			screen.blit( self.image, self.rect )
 		
 		return None
 

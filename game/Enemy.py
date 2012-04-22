@@ -36,8 +36,17 @@ class FloatyTurp( Enemy ):
 		# Animation
 		self.updateAnim( ticks )
 		
-		# Draw
-		screen.blit( self.image, self.rect )
+		if Game.outsideScreen( self.pos, self.rect ):
+			self.visible = False
+		else:
+			self.visible = True
+		
+		if self.pos[0] < -self.rect.width:
+			self.kill( )
+		
+		if self.visible:
+			# Draw
+			screen.blit( self.image, self.rect )
 		
 		return [ "check-collisions", "player-paint" ]
 	
@@ -73,5 +82,14 @@ class BulletTurp( Enemy ):
 		# Animation
 		self.updateAnim( ticks )
 		
-		# Draw
-		screen.blit( self.image, self.rect )
+		if Game.outsideScreen( self.pos, self.rect ):
+			self.visible = False
+		else:
+			self.visible = True
+		
+		if self.pos[0] < 0:
+			self.kill( )
+		
+		if self.visible:
+			# Draw
+			screen.blit( self.image, self.rect )
