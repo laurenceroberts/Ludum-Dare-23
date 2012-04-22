@@ -7,6 +7,8 @@ from Sprite import Sprite
 pygame.mixer.init( )
 sound_death = pygame.mixer.Sound( "sounds/scream.wav" )
 sound_damage = pygame.mixer.Sound( "sounds/damage.wav" )
+sound_hoover = pygame.mixer.Sound( "sounds/hoover.wav" )
+sound_hoover.set_volume( 0.5 )
 
 # Player
 class Player( AnimatedSprite ):
@@ -144,18 +146,19 @@ class Player( AnimatedSprite ):
 			self.move_Y = 0
 	
 	def mouseDownListener( self, event ):
-		if event.button == self.control_PAINT:
+		if self.hoover.is_firing == False and event.button == self.control_PAINT:
 			self.active_weapon = 'paintgun'
 			self.paintgun.visible = True
 			self.hoover.visible = False
 			self.paintgun.is_firing = True
 			self.target.is_firing = True
-		elif event.button == self.control_HOOVER:
+		elif self.paintgun.is_firing == False and event.button == self.control_HOOVER:
 			self.active_weapon = 'hoover'
 			self.paintgun.visible = False
 			self.hoover.visible = True
 			self.hoover.is_firing = True
 			self.target.is_firing = True
+			sound_hoover.play( )
 		
 		self.target.weapon = self.active_weapon
 	
@@ -163,6 +166,7 @@ class Player( AnimatedSprite ):
 		self.paintgun.is_firing = False
 		self.hoover.is_firing = False
 		self.target.is_firing = False
+		sound_hoover.stop( )
 	
 	def collisionsListener( self, collisions ):
 		length = len( collisions )
@@ -364,10 +368,14 @@ class PaintSplat( AnimatedSprite ):
 			dx = float( self.target[0] - self.pos[0] )
 			dy = float( self.target[1] - self.pos[1] )
 			if dy == 0: dy = 0.01
-			a = 360 - math.atan2(dy, dx)
+			a = math.atan(dx / dy)
 			
 			self.move_X = (self.speed * math.sin(a))
 			self.move_Y = (self.speed * math.cos(a))
+			
+			if dy < 0:
+				self.move_X = -self.move_X
+				self.move_Y = -self.move_Y
 			
 			# Move
 			self.pos[0] += self.move_X

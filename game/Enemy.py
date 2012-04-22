@@ -19,7 +19,7 @@ class FloatyTurp( Enemy ):
 	def __init__( self, pos ):
 		super( FloatyTurp, self ).__init__( pos, "sprites/enemies/turp-1.png" )
 		
-		self.addAnimState( "move", 0, 3, 6 )
+		self.addAnimState( "move", 0, 3, 4 )
 		self.setAnimState( "move" )
 		
 		self.angle = random.randint(0, 359)
@@ -94,3 +94,13 @@ class BulletTurp( Enemy ):
 		if self.visible:
 			# Draw
 			screen.blit( self.image, self.rect )
+
+'''			
+class ShooterTurp( Enemy ):
+	speed_X = 4
+	
+	def __init__( self, pos ):
+		super( ShooterTurp, self ).__init__( pos, "sprites/enemies/turp-3.png" )
+		
+	def draw( self, screen, frame_ticks, ticks, fps ):
+'''	

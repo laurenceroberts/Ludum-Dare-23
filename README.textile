@@ -1,4 +1,4 @@
-h1. Ludum Dare 23 - Un-named Project
+h1. Ludum Dare 23 - "I Painted a Tiny World"
 
 This is my entry to Ludum Dare 23 [http://www.ludumdare.com]
 
@@ -54,4 +54,4 @@ Possible tracks:
 
 h3. Sound Effects
 
-Sourced from GR Sites [http://www.grsites.com]
+Sourced from GR Sites [http://www.grsites.com/archive/sounds/]
